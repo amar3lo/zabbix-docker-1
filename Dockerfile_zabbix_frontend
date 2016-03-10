@@ -1,0 +1,18 @@
+FROM alpine/nginx
+
+MAINTAINER Thierry SALLE <thierry.salle@gmail.com>
+
+# Installing Packages
+RUN apk add zabbix-webif zabbix-agent php-fpm php-mysqli
+
+# Copying startup script
+COPY bin/start_zabbix_frontend /sbin/start_zabbix_frontend
+
+# Copying configuration files
+COPY conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
+COPY conf/zabbix.conf.php /usr/share/webapps/zabbix/conf/zabbix.conf.php
+COPY conf/php-fpm.conf /etc/php/php-fpm.conf
+COPY conf/nginx.conf /etc/nginx/nginx.conf
+
+# Entry point
+ENTRYPOINT /sbin/start_zabbix_frontend

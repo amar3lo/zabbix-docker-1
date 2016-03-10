@@ -1,0 +1,33 @@
+#!/bin/ash
+
+
+_ensure_mysql_running() {
+    #Checking mysql is running (Thank you to Sameersbn)
+    timeout=15
+    while ! mysql -hzabbix_database -uzabbix -pZaBBiX%42 zabbix -e "SHOW TABLES" > /dev/null 2>&1
+    do
+        timeout=$(($timeout -1))
+        if [[ $timeout -eq 0 ]]; then
+            echo -e "\nCould not connect to database server. Aborting..."
+            exit 1
+        fi
+        echo -n "."
+        sleep 1
+    done
+}
+
+echo "Waiting for mysql"
+_ensure_mysql_running
+
+tables_exists=$(mysql -hzabbix_database -uzabbix -pZaBBiX%42 zabbix -e "SHOW TABLES")
+if [ "${tables_exists}" == "" ]; then
+    echo "Creating Zabbix Schema"
+    mysql -hzabbix_database -uzabbix -pZaBBiX%42 zabbix < /usr/share/zabbix/database/mysql/schema.sql
+    mysql -hzabbix_database -uzabbix -pZaBBiX%42 zabbix < /usr/share/zabbix/database/mysql/images.sql
+    mysql -hzabbix_database -uzabbix -pZaBBiX%42 zabbix < /usr/share/zabbix/database/mysql/data.sql
+fi
+
+echo "Starting Zabbix agent"
+zabbix_agentd -c /etc/zabbix/zabbix_agentd.conf
+echo "Starting Zabbix Server"
+zabbix_server -f -c /etc/zabbix/zabbix_server.conf

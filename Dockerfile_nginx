@@ -1,0 +1,11 @@
+FROM alpine
+
+MAINTAINER Thierry SALLE <thierry.salle@gmail.com>
+
+# Use Alpine edge repositories
+RUN sed -i -e 's/v3\.3/edge/g' /etc/apk/repositories
+RUN apk update
+RUN apk upgrade
+
+# Install package
+RUN apk add nginx

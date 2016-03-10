@@ -1,0 +1,22 @@
+FROM alpine
+
+MAINTAINER Thierry SALLE <thierry.salle@gmail.com>
+
+# Use alpine edge repositories
+RUN sed -i -e 's/v3\.3/edge/g' /etc/apk/repositories
+RUN apk update
+RUN apk upgrade
+
+# Install packages
+RUN apk add zabbix-mysql zabbix-setup mariadb-client zabbix-agent
+
+# Copying Startup script
+COPY bin/start_zabbix_server /sbin/start_zabbix_server
+
+# Copying configuration files
+COPY conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf
+COPY conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
+
+# Entrypoint
+USER zabbix
+ENTRYPOINT /sbin/start_zabbix_server
